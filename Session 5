@@ -1,0 +1,433 @@
+Load Balancer session 5
+
+-it was attributes like ( target(Server) ,traffic)
+- traffic configuration
+- access logs
+-Elastic load balancing 
+
+- Security groups(no voice) but topic covered
+-RDS(Maria DB)
+- transit gateway
+- cloud watch 
+- AWS Lambada Funtion to stop EC2 instance 
+
+
+
+------------------------Standard output----------------------
+
+Your Session 5 topics cover Elastic Load Balancing, Security Groups, Amazon RDS (MariaDB), Transit Gateway, Amazon CloudWatch, and AWS Lambda to stop EC2 instances.
+I'll explain each topic in simple language, correct your notes where needed, and provide interview questions with answers and practical examples.
+1. Elastic Load Balancing (ELB)
+
+What is a Load Balancer?
+An Elastic Load Balancer (ELB) automatically distributes incoming application traffic across multiple targets, such as EC2 instances, to improve availability and handle traffic efficiently.
+For example, suppose your application runs on three EC2 instances:
+- EC2-1
+- EC2-2
+- EC2-3
+Instead of users accessing each server separately, they access the load balancer. It forwards their requests to healthy targets according to its configuration.
+Important components
+Component	Meaning
+Load balancer	Receives incoming connections and distributes traffic.
+Listener	Checks incoming connections on a configured protocol and port, such as HTTP port 80 or HTTPS port 443.
+Target group	Contains registered targets, such as EC2 instances or IP addresses.
+Target	The individual server or resource receiving requests.
+Health check	Checks whether a target is healthy enough to receive traffic.
+Traffic configuration	Defines listeners, rules, protocols, ports, target groups and routing behavior.
+Access logs	Records information about requests processed by supported load balancer types.
+How does traffic flow?
+Users / Clients
+
+Load Balancer
+Listener: HTTP 80 / HTTPS 443
+
+Target Group
+EC2-1
+Healthy
+
+
+EC2-2
+Healthy
+
+
+EC2-3
+Unhealthy
+
+
+
+
+Traffic is routed to eligible healthy targets according to the load balancer's rules.
+
+What are the types of load balancers?
+- Application Load Balancer (ALB): Works at Layer 7 (HTTP/HTTPS). Can route requests based on hostnames, URL paths and other application-level rules.
+- Network Load Balancer (NLB): Works primarily at Layer 4 (TCP/UDP/TLS). Suitable for high-performance network traffic and low latency.
+- Gateway Load Balancer (GWLB): Helps deploy and scale virtual network appliances, such as firewalls.
+- Classic Load Balancer (CLB): The older generation, supporting basic Layer 4 and Layer 7 load balancing.
+Access logs: what do they do?
+Access logs record details about requests handled by supported load balancers. For example, ALB access logs can help you investigate:
+- Request timestamps and client IP addresses.
+- Requested URLs and HTTP methods.
+- HTTP status codes.
+- Target response information and processing times.
+- Failed or slow requests.
+For an Application Load Balancer, you can configure access logs to be delivered to an Amazon S3 bucket.
+Remember: CloudWatch metrics and access logs are different. Metrics provide numerical measurements, while logs contain individual request records.
+Interview questions and answers: Load Balancer
+Q1. What is Elastic Load Balancing in AWS?
+Answer: Elastic Load Balancing distributes incoming traffic across multiple registered targets, such as EC2 instances. It helps improve application availability, scalability and fault tolerance.
+Q2. What is the difference between a listener and a target group?
+Answer: A listener accepts requests on a specified port and protocol, while a target group identifies the backend resources to which requests should be forwarded.
+Q3. What is a health check?
+Answer: A health check verifies whether a registered target is responding correctly. If a target fails its configured health checks, the load balancer generally stops sending it new traffic while healthy targets remain available. 
+
+Elastic Load Balancing
++1
+
+
+
+Q4. What are access logs used for?
+Answer: Access logs help troubleshoot HTTP errors, slow requests, client requests and backend response issues. For an ALB, I can configure log delivery to Amazon S3.
+Q5. How would you troubleshoot a load balancer returning a 503 error?
+Answer:
+1. Check the load balancer's CloudWatch metrics.
+2. Check the target group's health status.
+3. Verify that EC2 instances are running and the application service is active.
+4. Verify listener rules, target ports and security group rules.
+5. Check application logs and load balancer access logs.
+6. Restore unhealthy targets or correct the configuration, then verify the application.
+Q6. What happens if one EC2 instance fails?
+Answer: If other healthy targets are available, the load balancer can continue routing traffic to them. This helps reduce the impact of a single-server failure.
+
+2. Security Groups
+A Security Group is a virtual firewall associated with resources such as EC2 instances, load balancers and certain database resources.
+It controls which network traffic is allowed to reach and leave a resource.
+Rule	Example	Purpose
+Inbound	TCP 443 from approved clients	Allows HTTPS connections.
+Inbound	TCP 80 from an approved source	Allows HTTP connections.
+Inbound	TCP 22 from an approved admin IP	Allows SSH administration of Linux EC2.
+Outbound	TCP 443 to an approved destination	Allows HTTPS connections leaving the resource.
+Security groups are stateful: response traffic for an allowed connection is automatically permitted, even if a separate rule does not explicitly allow that response direction.
+Practical example: Load balancer to EC2
+Suppose an ALB receives requests on port 443 and forwards them to an application on EC2 port 8080.
+A good security configuration is:
+- ALB security group: allow inbound HTTPS on port 443 from permitted clients.
+- EC2 security group: allow inbound TCP port 8080 from the ALB security group.
+- Do not expose the application port directly to the entire internet unless there is a specific requirement.
+Interview questions and answers
+Q1. What is a Security Group?
+Answer: A Security Group is a stateful virtual firewall that controls inbound and outbound traffic to associated AWS resources.
+Q2. What is the difference between inbound and outbound rules?
+Answer: Inbound rules control traffic entering a resource, while outbound rules control traffic leaving it.
+Q3. Can I allow traffic from one Security Group to another?
+Answer: Yes. For example, I can allow the EC2 application server's security group to accept traffic from the load balancer's security group. This is useful because it avoids depending on changing load balancer IP addresses.
+Q4. What is the difference between a Security Group and a Network ACL?
+Answer: A Security Group operates at the resource's network interface level and is stateful. A Network ACL operates at the subnet level and is stateless, so inbound and outbound rules must be considered separately.
+Q5. Why should SSH port 22 not be open to everyone?
+Answer: Allowing SSH from 0.0.0.0/0 exposes the server's SSH port to the internet. I would restrict access to an approved administrative IP or use a controlled access method such as AWS Systems Manager Session Manager.
+
+3. Amazon RDS – MariaDB
+
+
+
+
+
+
+
+docs.aws.amazon.com
+
+
+What is Amazon RDS?
+Amazon Relational Database Service (RDS) is a managed service that makes it easier to set up, operate and maintain relational databases.
+MariaDB is one of the database engines supported by Amazon RDS.
+For example, a web application hosted on EC2 may store customer information, transactions and application records in an RDS MariaDB database.
+How does it work?
+Application on EC2
+Processes application requests
+
+RDS MariaDB
+Stores and retrieves relational data
+
+The application connects using the database endpoint, port, credentials and network permissions.
+
+Important concepts
+- DB instance: The managed database environment.
+- Endpoint: The DNS address used by an application to connect to the database.
+- Port: MariaDB commonly uses TCP port 3306.
+- DB subnet group: Identifies the VPC subnets in which RDS can place database resources.
+- Security group: Controls network access to the database.
+- Automated backups: Support recovery within the configured backup retention period.
+- Multi-AZ deployment: Provides high availability through a standby or other supported failover architecture.
+- Read replica: Can help scale read-heavy workloads, where supported and appropriately configured.
+Interview questions and answers
+Q1. What is Amazon RDS?
+Answer: Amazon RDS is a managed relational database service. AWS manages many routine database administration tasks, such as infrastructure provisioning, backups and supported maintenance operations.
+Q2. What is MariaDB?
+Answer: MariaDB is a relational database management system that stores data in tables and supports SQL queries. AWS offers MariaDB as an engine for Amazon RDS.
+Q3. How does an EC2 instance connect to RDS MariaDB?
+Answer:
+1. Identify the RDS endpoint and port.
+2. Ensure network connectivity between the EC2 instance and the database.
+3. Configure the RDS security group to allow TCP 3306 from the application's security group.
+4. Use the correct database name, username and password or other configured authentication.
+5. Test the connection and verify the application can run its required queries.
+Q4. What is the difference between Multi-AZ and a Read Replica?
+Answer: Multi-AZ primarily supports high availability and failover. A Read Replica primarily supports read scaling and, depending on the engine and configuration, can also be used for other database workflows.
+Q5. How would you troubleshoot an RDS connection failure?
+Answer:
+- Verify the RDS instance status.
+- Confirm the endpoint and port.
+- Check security groups, subnet routing, NACLs and DNS resolution.
+- Confirm the database credentials and permissions.
+- Test network connectivity from the application server.
+- Review application logs and available database monitoring metrics.
+Q6. Why use RDS instead of installing MariaDB directly on EC2?
+Answer: RDS reduces routine database administration work and provides managed features such as backups, monitoring, maintenance options and supported high-availability configurations. Installing MariaDB on EC2 gives more operating-system-level control but requires more manual management.
+
+4. AWS Transit Gateway
+
+
+
+
+
+
+
+cloudqubes.com
+
+
+What is Transit Gateway?
+AWS Transit Gateway is a network service that connects multiple VPCs and on-premises networks through a central networking hub.
+Imagine a company has five VPCs:
+- VPC 1 — Production
+- VPC 2 — Development
+- VPC 3 — Testing
+- VPC 4 — Database
+- VPC 5 — Shared services
+Instead of maintaining many individual VPC peering connections, the company can use a Transit Gateway as a central connection point.
+Transit Gateway vs VPC Peering
+Feature	VPC Peering	Transit Gateway
+Main purpose	Connect two VPCs	Connect many networks centrally
+Architecture	Direct connection	Hub-and-spoke
+Transitive routing	Not supported	Supported through appropriate attachments and routes
+Best use	A small number of VPCs	Larger, multi-VPC environments
+Routing	Configure routes on both sides	Configure attachment and Transit Gateway route tables, plus VPC routes
+Interview questions and answers
+Q1. What is AWS Transit Gateway?
+Answer: AWS Transit Gateway acts as a central network hub that connects VPCs and on-premises networks. It simplifies network management when an organization has multiple networks.
+Q2. What is the difference between Transit Gateway and VPC Peering?
+Answer: VPC Peering directly connects two VPCs and does not support transitive routing. Transit Gateway supports hub-based routing across multiple attached networks, subject to its route tables and network configuration.
+Q3. Does creating a Transit Gateway automatically provide connectivity between every VPC?
+Answer: No. We must create the necessary attachments, configure Transit Gateway routes and VPC route tables, and ensure security rules permit the traffic.
+Q4. Can Transit Gateway connect an on-premises data center to AWS?
+Answer: Yes. It can connect to on-premises networks through supported VPN or Direct Connect architectures.
+Q5. How would you troubleshoot connectivity between two VPCs connected through Transit Gateway?
+Answer:
+1. Verify both VPC attachments are available.
+2. Check Transit Gateway route table associations and propagation.
+3. Confirm the destination routes in the source and destination VPC route tables.
+4. Check CIDR ranges for overlapping addresses.
+5. Verify Security Groups, Network ACLs and host firewalls.
+6. Test connectivity using the correct protocol and port.
+
+5. Amazon CloudWatch
+
+
+
+
+
+
+
+virtualizationreview.com
+
+
+What is CloudWatch?
+Amazon CloudWatch is a monitoring and observability service used to collect metrics, view logs, create alarms and monitor AWS resources and applications.
+For example, if an EC2 instance's CPU utilization becomes unusually high, CloudWatch can raise an alarm and initiate an alerting or automation workflow.
+Important CloudWatch components
+Component	Purpose
+Metrics	Numerical measurements such as CPU utilization and network traffic.
+Alarms	Evaluate metrics against configured thresholds.
+Dashboards	Display important metrics and alarms in one place.
+CloudWatch Logs	Store and help search logs from supported AWS services and applications.
+CloudWatch Agent	Can collect additional operating-system metrics and logs from EC2, such as memory and disk utilization, when configured.
+Events and automation	CloudWatch alarms and EventBridge rules can trigger supported actions and workflows.
+Example: High CPU alert
+Suppose a production EC2 instance normally runs at 30–40% CPU utilization, but its CPU rises to 90%.
+A CloudWatch alarm can be configured to enter the ALARM state when CPU utilization exceeds a defined threshold for a specified period. The alarm can then notify an SNS topic or trigger a suitable automation workflow.
+Note that EC2 CPU utilization is available as a standard metric, but memory utilization generally requires the CloudWatch Agent or another collection mechanism.
+Interview questions and answers
+Q1. What is Amazon CloudWatch?
+Answer: CloudWatch is an AWS monitoring service used to collect metrics, monitor logs, create alarms and observe the performance and health of infrastructure and applications.
+Q2. What is the difference between CloudWatch metrics and logs?
+Answer: Metrics are numerical measurements over time, such as CPU utilization. Logs are records of events, application messages and errors that help with troubleshooting.
+Q3. How do you create a CloudWatch alarm for high CPU utilization?
+Answer:
+1. Open CloudWatch in the correct AWS Region.
+2. Select Alarms and create an alarm.
+3. Choose the EC2 CPUUtilization metric for the required instance.
+4. Configure the threshold, evaluation periods and comparison operator.
+5. Configure an action, such as notifying an SNS topic.
+6. Review the alarm state and verify that the action works.
+Q4. How would you troubleshoot a high CPU alarm?
+Answer: I would identify the affected instance, review the CPU metric and the time of the spike, and inspect application logs. For a Linux instance, I could use top, ps, uptime and free -h to investigate processes, load and memory. I would then determine whether the issue relates to application load, a runaway process, scheduled jobs or insufficient resources.
+Q5. Can CloudWatch monitor disk utilization and memory utilization?
+Answer: Yes, when the appropriate metrics are available. EC2's standard metrics include CPU, network and disk I/O measurements, but filesystem utilization and memory usage typically require the CloudWatch Agent or another monitoring solution.
+Q6. What is the difference between CloudWatch and CloudTrail?
+Answer: CloudWatch focuses on operational monitoring, metrics, logs and alarms. CloudTrail records AWS API activity, helping identify who performed an action, what action occurred and when.
+
+6. AWS Lambda function to stop an EC2 instance
+
+
+
+
+
+
+
+aws.amazon.com
+
+
+What is AWS Lambda?
+AWS Lambda is a serverless compute service that runs code in response to events without requiring you to manage a server for the function itself.
+For example, you can create a Lambda function that stops a development EC2 instance every evening to reduce compute costs.
+How does the process work?
+Amazon EventBridge
+Triggers the function on a schedule
+
+AWS Lambda
+Runs Python or another supported runtime
+
+IAM execution role
+Grants permission to stop the specified EC2 instance
+
+EC2 instance stops
+The instance can be started again when needed
+
+
+Step-by-step implementation
+1. Launch an EC2 instance and note its instance ID and AWS Region.
+2. Create an IAM role for Lambda with permission to stop the intended instance.
+3. Create a Lambda function using Python.
+4. Add code that calls the EC2 StopInstances API.
+5. Configure the Lambda function's execution role.
+6. Test the function manually using a test event.
+7. If automation is required, create an Amazon EventBridge scheduled rule to invoke the Lambda function.
+8. Review Lambda logs in CloudWatch and verify that the EC2 instance reaches the stopped state.
+Sample Python code
+This example uses the AWS SDK for Python (boto3), which is available in supported Lambda Python runtimes.
+import boto3import osec2 = boto3.client("ec2")def lambda_handler(event, context):    instance_id = os.environ["INSTANCE_ID"]    response = ec2.stop_instances(        InstanceIds=[instance_id]    )    return {        "statusCode": 200,        "message": f"Stop request sent for {instance_id}",        "response": response["StoppingInstances"]    }
+
+
+
+Configure an environment variable named INSTANCE_ID with the intended EC2 instance ID. Deploy the function in the appropriate AWS Region.
+Important: This function sends a stop request; it does not guarantee the instance has already stopped when the function returns.
+IAM permissions
+The Lambda execution role needs permission to stop the target instance. For a tightly restricted setup, use an IAM policy scoped to the intended instance ARN where supported, and review any additional permissions required by your workflow.
+Example policy structure:
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ec2:StopInstances",
+      "Resource": "arn:aws:ec2:ap-south-1:123456789012:instance/i-0123456789abcdef0"
+    }
+  ]
+}
+
+
+
+Replace the example account ID and instance ID with your actual values.
+Interview questions and answers
+Q1. What is AWS Lambda?
+Answer: AWS Lambda is a serverless compute service that executes code in response to events. AWS manages the underlying execution infrastructure.
+Q2. How can you automatically stop EC2 instances at night?
+Answer: I can create a Lambda function with permission to stop the required EC2 instances and configure Amazon EventBridge to invoke it on a schedule.
+Q3. Why does Lambda need an IAM role?
+Answer: The execution role provides the permissions the function needs to access AWS services. In this example, it grants permission to stop the intended EC2 instance.
+Q4. Where do you check Lambda execution errors?
+Answer: I check the function's CloudWatch Logs, Lambda metrics and any invocation errors. I also verify that the execution role has the required permissions and that the instance ID and Region are correct.
+Q5. Does stopping EC2 mean terminating it?
+Answer: No. Stopping an instance shuts down its compute activity while retaining the instance for later use. Terminating an instance is a separate, generally irreversible lifecycle action. Some resources, such as attached EBS volumes, may have separate billing implications.
+Q6. What happens if Lambda does not have permission to stop EC2?
+Answer: The API call fails with an authorization error. I would review the Lambda execution role, its attached policies, the target resource and any applicable permission boundaries or organizational policies.
+Q7. Can Lambda also start EC2 instances?
+Answer: Yes. A similar function can call StartInstances, provided the execution role has the required ec2:StartInstances permission.
+
+7. Quick revision: all Session 5 topics
+Topic	Remember this key point
+Elastic Load Balancing	Distributes traffic across registered targets.
+Target group	Contains registered backend targets and health-check configuration.
+Listener	Accepts connections on a configured port and protocol.
+Access logs	Help investigate individual requests and errors.
+Security Group	Stateful virtual firewall for AWS resources.
+RDS MariaDB	Managed relational database service using the MariaDB engine.
+Transit Gateway	Central hub for routing between multiple networks.
+CloudWatch	Metrics, logs, alarms and operational monitoring.
+Lambda	Runs code in response to events without managing the function's servers.
+EventBridge	Can trigger Lambda functions on a schedule.
+IAM execution role	Gives Lambda the permissions it needs.
+8. Practice interview questions
+AWS Session 5 quiz
+0 of 6 answered
+
+1. Which load balancer works at Layer 7?
+
+Network Load Balancer
+
+Application Load Balancer
+
+Gateway Load Balancer
+
+
+
+2. Which AWS service centrally connects multiple VPCs?
+
+Amazon CloudWatch
+
+Amazon RDS
+
+AWS Transit Gateway
+
+
+
+3. Which metric is available by default for EC2 monitoring?
+
+CPU utilization
+
+Application-specific error count
+
+Filesystem percentage used
+
+
+
+4. What is required for a Lambda function to stop EC2?
+
+Only a security group
+
+An execution role with the required permission
+
+A database password
+
+
+
+5. Which port is commonly used by MariaDB?
+
+22
+
+443
+
+3306
+
+
+
+6. What is the difference between CloudWatch and CloudTrail?
+
+They are identical services
+
+CloudWatch monitors operations; CloudTrail records AWS API activity
+
+CloudTrail only stores database tables
+
+
+
+Interview tip: For scenario-based questions, explain the issue, the AWS console or service you would inspect, the configuration or logs you would check, the corrective action you would take, and how you would verify the resolution. This makes your answers sound practical rather than purely theoretical.
